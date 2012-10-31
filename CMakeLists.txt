@@ -1,12 +1,15 @@
 # define the project
 PROJECT(openGL_examples)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-find_package(GLUT)
-find_package(OpenGL)
+FIND_PACKAGE(GLUT)
+FIND_PACKAGE(OpenGL)
+
 INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 
 # define the executable
 ADD_EXECUTABLE(line line.cpp)
+ADD_EXECUTABLE(rectangle rectangle.cpp)
 
 TARGET_LINK_LIBRARIES(line ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
-
+TARGET_LINK_LIBRARIES(rectangle ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
