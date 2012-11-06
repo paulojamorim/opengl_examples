@@ -1,9 +1,11 @@
 #include <GL/glut.h>
 #include <iostream>
+#include <time.h>
+#include <vector>
 
 using namespace std;
 
-float* ViewPosTo3D(float *p);
+double* ViewPosTo3D(double *p);
 void Desenha(void);
 void AlteraTamanhoJanela(GLsizei w, GLsizei h);
 void EspecificaParametrosVisualizacao(void);
@@ -13,24 +15,38 @@ void Inicializa(void);
 
 GLfloat angle, fAspect;
 bool tracking_mouse = false;
-float velocity = 0.0;
-int last_time = 0;
+double velocity = 0.0;
 int win_width, win_height;
 
+vector<double> rotation(4);
+vector<double> axis(3);
 
-float* ViewPosTo3D(float *p)
+time_t last_time = time(NULL);
+
+
+double* ViewPosTo3D(double *p)
 {
-    float px, py;
+    double px, py;
     px = p[0];
     py = p[1];
 
-    float point3d[3];
+    double point3d[3];
 
     point3d[0] = 2.0 * px / win_width - 1.0;
     point3d[1] = 1.0 - 2.0 * py / win_height;
     point3d[2] = 0.0;
  
     return point3d;
+}
+
+vector<double> GetRotation()
+{
+    double angle;
+    if (tracking_mouse)
+        return rotation;
+
+    time_t current_time = time(NULL);
+    angle = velocity * (current_time - last_time);
 }
 
 void Desenha(void)
@@ -68,11 +84,11 @@ void EspecificaParametrosVisualizacao(void)
 
 void GerenciaMouseMove(int x, int y)
 {
-    float b[2];
+    double b[2];
     b[0] = x;
     b[1] = y;
 
-    float *r;
+    double *r;
     r = ViewPosTo3D(b);
     cout << r[0] << " " << r[1] <<  " " << r[2] << endl;
 }
@@ -124,6 +140,18 @@ void Inicializa(void)
 
 int main(int argc, char **argv)
 {
+    
+    //Init the quaternion
+    rotation[0] = 1;
+    rotation[1] = 0;
+    rotation[2] = 0;
+    rotation[3] = 0;
+
+    //Init axis
+    axis[0] = 0;
+    axis[1] = 0;
+    axis[2] = 0;
+
     glutInit(&argc, argv); 
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 
