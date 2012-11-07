@@ -1,11 +1,17 @@
 #include <GL/glut.h>
 #include <iostream>
 #include <time.h>
+#include <math.h>
 #include <vector>
 
 using namespace std;
 
 double* ViewPosTo3D(double *p);
+vector<double> GetRotation(void);
+vector<double> FromAxisAndAngle(vector<double> axis, double angle);
+vector<double> normalized(vector<double> values);
+double lengthSquared(double xp, double yp, double zp);
+
 void Desenha(void);
 void AlteraTamanhoJanela(GLsizei w, GLsizei h);
 void EspecificaParametrosVisualizacao(void);
@@ -24,6 +30,8 @@ vector<double> axis(3);
 time_t last_time = time(NULL);
 
 
+// --------   Virtual Trackball -------------------------
+
 double* ViewPosTo3D(double *p)
 {
     double px, py;
@@ -39,7 +47,7 @@ double* ViewPosTo3D(double *p)
     return point3d;
 }
 
-vector<double> GetRotation()
+vector<double> GetRotation(void)
 {
     double angle;
     if (tracking_mouse)
@@ -48,6 +56,81 @@ vector<double> GetRotation()
     time_t current_time = time(NULL);
     angle = velocity * (current_time - last_time);
 }
+
+vector<double> FromAxisAndAngle(vector<double> axis, double angle)
+{
+    double a, s, c;
+    double xp, yp, zp, len;
+    vector<double> quaternion;
+    vector<double> result;
+
+    xp = axis[0];
+    yp = axis[1];
+    zp = axis[2];
+
+    len = sqrt(xp * xp + yp * yp + zp * zp);
+
+    if (!len)
+    {
+        xp /= len;
+        yp /= len;
+        zp /= len;
+    }
+
+    a = (angle / 2.0f) * M_PI / 180.0f;
+    s = sin(a); 
+    c = cos(a);
+
+    result[0] = c;
+    result[1] = xp * s;
+    result[2] = yp * s;
+    result[3] = zp * s;
+    result[4] = 1;
+
+    return normalized(result);
+
+}
+
+
+vector<double> normalized(vector<double> values)
+{
+
+    double len;
+    double xp = values[0];
+    double yp = values[1];
+    double zp = values[2];
+
+    len = lengthSquared(xp, yp, zp);
+
+    if (not(len -1.0))
+    {
+        return values;
+    }
+    else if(len)
+    {
+        
+        values[0] = values[0] / sqrt(len);
+        values[1] = values[1] / sqrt(len);
+        values[2] = values[2] / sqrt(len);
+        return values;
+    }
+    else
+    {
+        values[0] = 0;
+        values[1] = 0;
+        values[2] = 0;
+        return values;
+    }
+}
+
+
+double lengthSquared(double xp, double yp, double zp)
+{
+    return xp * xp + yp * yp + zp * zp;
+}
+
+
+// ----------------------------------------------------
 
 void Desenha(void)
 {
